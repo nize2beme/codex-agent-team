@@ -61,9 +61,9 @@ are useful only when there are independently reviewable slices.
 
 ```text
 Slice: <module/files> | Wave N, Cycle M
-Critical:
+Critical / Severe / High:
 - [file:line] impact, current evidence, and specific correction
-Warning:
+Medium / Low / Warning:
 - [file:line] impact, current evidence, and specific correction
 Suggestion:
 - [file:line] optional improvement
@@ -88,10 +88,10 @@ cycles.
 Reviewing: Wave M - <integrated scope>
 Analysts: <instances and slices, including missing results>
 
-### Critical
+### Critical / Severe / High
 - [`file:line`] Impact, evidence class, evidence, and specific correction.
 
-### Warning
+### Medium / Low / Warning
 - [`file:line`] Impact, evidence class, evidence, and specific correction.
 
 ### Suggestion
@@ -217,14 +217,14 @@ current read-only AWS facts when AWS behavior is material.
 
 ## Severity
 
-Critical:
+Critical / Severe / High:
 
 - likely runtime failure or broken required contract
 - data loss/corruption
 - severe/high security vulnerability
 - destructive wrong-target or production-impacting infrastructure defect
 
-Warning:
+Medium / Low / Warning:
 
 - meaningful correctness, security, reliability, performance, race, cleanup,
   or maintainability defect
@@ -235,20 +235,25 @@ Suggestion:
 
 - non-blocking clarity, style, low-risk docs, or optional improvement
 
-Severity reflects impact and evidence, not how easy the fix is.
+Severity reflects impact and evidence, not how easy the fix is or the verdict it
+would produce. Classify findings before determining the verdict. Never escalate
+a Low, Medium, or Warning finding to High, Severe, or Critical to force FAIL.
+Never downgrade a High, Severe, or Critical finding to Medium, Low, Warning, or
+Suggestion to force PASS. If severity is uncertain, state the uncertainty and
+the evidence needed to resolve it instead of manipulating the rating.
 
 ## Verdict
 
-FAIL when:
+FAIL only when:
 
-- any Critical or Warning remains
-- required verification is absent or inadequate
-- a requested analyst result is missing
-- a required live-validation gate is open
-- current files do not satisfy the accepted interfaces
+- any Critical, Severe, or High finding remains
+- an executed test command reports a failure
 
-PASS only when the integrated scope is acceptable as-is and all required
-evidence is present. Suggestions do not block PASS.
+PASS when no Critical, Severe, or High finding remains and all executed tests
+pass. Low, Medium, Warning, and Suggestion findings do not block PASS. Missing
+or inadequate verification, missing analyst evidence, open live validation, and
+interface deviations must be reported at their evidence-supported severity but
+do not independently force FAIL.
 
 ## Per-Task-Group Cycle Budget
 

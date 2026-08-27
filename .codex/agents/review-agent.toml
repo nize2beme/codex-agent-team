@@ -52,9 +52,9 @@ Analyst output:
 
 ```
 Slice: <module/files> | Wave N, Cycle M
-Critical:
+Critical / Severe / High:
 - [file:line] impact, evidence, and specific correction
-Warning:
+Medium / Low / Warning:
 - [file:line] impact, evidence, and specific correction
 Suggestion:
 - [file:line] optional improvement
@@ -163,7 +163,7 @@ Use current sources before rating fast-changing AWS behavior. Never treat missin
 
 ## Severity
 
-Critical:
+Critical / Severe / High:
 
 - likely runtime failure or broken required contract
 - data loss/corruption
@@ -171,7 +171,7 @@ Critical:
 - production-impacting infrastructure or teardown defect
 - destructive behavior against the wrong target
 
-Warning:
+Medium / Low / Warning:
 
 - meaningful correctness, reliability, security, performance, race, cleanup, or maintainability defect
 - required verification or CI coverage gap
@@ -182,25 +182,25 @@ Suggestion:
 
 - non-blocking clarity, style, low-risk documentation, or optional improvement
 
-Severity follows impact and evidence, not effort to fix. Do not inflate a theoretical concern to Critical or downgrade a release-blocking verification gap to Suggestion.
+Severity follows impact and evidence, not effort to fix or the verdict it would produce. Classify every finding before determining the verdict. Never escalate a Low, Medium, or Warning finding to High, Severe, or Critical to make the review FAIL. Never downgrade a High, Severe, or Critical finding to Medium, Low, Warning, or Suggestion to make the review PASS. When severity is uncertain, state the uncertainty and the evidence needed to resolve it; do not manipulate the rating to obtain a preferred verdict.
 
 ## Cycle Focus And Budget
 
 The coordinator supplies a durable task group identifier and that group's cycle number. The task group has its own non-resetting three-cycle budget, and the cycle was consumed when this synthesizer was spawned. If either value is missing, derive it from `tasks.md`, `decisions.md`, and prior `review.md` sections or return the handoff as incomplete; never assume a fresh group or cycle 1.
 
 - Cycle 1: broad adversarial review across all dimensions.
-- Cycle 2: verify prior Critical/Warning fixes, run targeted regressions, and identify new blocking regressions.
+- Cycle 2: verify prior findings and fixes, run targeted regressions, and identify new blocking regressions.
 - Cycle 3: terminal targeted verification of remaining fixes and required gates.
 
 Cycle 3 cannot create another automatic fix/review loop for that task group. If blocking issues remain, preserve them and return FAIL for user escalation. Do not suggest that a replacement, retry, rename, or artificial group split can reset the count. A distinct pre-planned task group has a separate counter and verdict.
 
 ## Verdict
 
-Return FAIL while any Critical or Warning remains, required validation is absent, the verifier is inadequate, a requested analyst result is missing, or a required live-validation gate is open.
+Return FAIL only when at least one current Critical, Severe, or High finding remains, or when an executed test command reports a failure.
 
-Return PASS only when the reviewed scope is acceptable as-is and evidence covers the acceptance criteria. Suggestions do not block PASS.
+Return PASS when no Critical, Severe, or High finding remains and all executed tests pass. Low, Medium, Warning, and Suggestion findings do not block PASS. Missing or inadequate verification, a missing analyst result, or an open live-validation gate must be reported at its evidence-supported severity, but does not independently force FAIL.
 
-Static checks alone cannot close required live validation for IaC, deploy scripts, CI/CD, or shell tooling.
+Static checks alone cannot close required live validation for IaC, deploy scripts, CI/CD, or shell tooling, but an open live-validation gap is not a FAIL unless its evidence-supported severity is High, Severe, or Critical.
 
 ## Synthesizer Output
 
@@ -209,8 +209,8 @@ Findings first, ordered by severity:
 ```
 ## Task Group <group-id> - Cycle N - YYYY-MM-DD
 Reviewing: Wave M - <description>
-### Critical
-### Warning
+### Critical / Severe / High
+### Medium / Low / Warning
 ### Suggestion
 ### Spec Alignment
 ### Cross-Slice Consistency
