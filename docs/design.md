@@ -1,96 +1,42 @@
-# Design: Codex Agent Team Sample
+# Design Overview
 
-This repository packages a reusable Codex team workflow without copying personal Codex runtime state.
+## Purpose
 
-The project config defaults the main thread to `openai.gpt-5.6-sol` at `xhigh`
-while intentionally omitting private provider, credential, profile, region, and
-trust settings.
+This repository provides a model-neutral Codex workflow for software delivery, platform operations, and independent review. It uses project-local custom agent profiles, an optional plugin, reusable skills, guarded hooks and shell rules, and spec templates.
 
-## System Overview
+Codex selects the active model and reasoning behavior from the current app or session configuration. Custom agent files omit model and reasoning overrides so they inherit the current session defaults.
 
-```text
-User request
-  -> main Codex thread or fullstack-agent
-  -> .codex/specs/<slug>/ artifacts
-  -> coding/devops/sa agents for scoped, file-disjoint work
-  -> review-agent pool for PASS/FAIL review
-  -> main thread consolidation
-```
+## Roles
 
-## Component Responsibilities
-
-| Component | Responsibility |
+| Role | Responsibility |
 | --- | --- |
-| `.codex/agents` | Project-scoped custom agent definitions for Codex subagent workflows |
-| `plugins/codex-agent-team` | Installable plugin containing reusable team skills and prompt shortcuts |
-| `.agents/plugins/marketplace.json` | Repo marketplace so Codex can discover and install the plugin |
-| `scripts/install_personal_plugin.py` | Optional helper that wires the same plugin into the default personal marketplace using the canonical `~/plugins/codex-agent-team` path |
-| `.codex/hooks` | Fail-open lifecycle logging for sessions and subagents |
-| `.codex/rules` | Guardrails for commands that should remain explicit approvals |
-| `docs/specs/templates` | Starter artifacts for spec-driven work |
+| Main thread | Owns user communication, scope, decisions, integration, and final verification. |
+| fullstack-agent | Plans durable work, splits file-disjoint tasks, coordinates workers, and consolidates evidence. |
+| coding-agent | Implements bounded application, test, and tooling changes. |
+| devops-agent | Reviews and implements platform, CI/CD, infrastructure, reliability, security, observability, performance, cost, and operations work. |
+| review-agent | Independently reviews correctness, security, regressions, and verification evidence. |
 
-## Agent Defaults
+The built-in Codex explorer role is useful for read-only repository mapping. It is not a substitute for the independent reviewer or the main thread's verification.
 
-| Agent | Model | Reasoning Effort | Primary Responsibility |
-| --- | --- | --- | --- |
-| `fullstack-agent` | `openai.gpt-5.6-sol` | `high` | Spawned lead for specs, work splitting, delegation, and review consolidation |
-| `coding-agent` | `openai.gpt-5.6-terra` | `high` | Scoped production code, tests, refactors, and fixes |
-| `devops-agent` | `openai.gpt-5.6-terra` | `xhigh` | CI/CD, containers, infrastructure, environment wiring, and runbooks |
-| `review-agent` | `openai.gpt-5.6-sol` | `xhigh` | Independent PASS/FAIL review for bugs, regressions, security, and missing verification |
-| `sa-agent` | `openai.gpt-5.6-sol` | `medium` | Architecture, reliability, cost, and operational design guidance |
+## Workflow
 
-## Parallel Pool Model
+1. Record durable requirements, design, tasks, decisions, and review history under .codex/specs/<slug>/.
+2. Split implementation into small waves with file-disjoint ownership.
+3. Delegate only work that can progress independently; keep the main thread responsible for integration.
+4. Verify outputs with focused tests, static checks, and safe executable equivalents.
+5. Run an independent adversarial review for each required task group.
+6. Track live validation separately when it requires deployment or shared resources.
 
-The team supports multiple same-role instances when a wave has enough independent file scopes:
+Each durable task group has a non-resetting review limit of three cycles. Cycle 3 is terminal.
 
-| Role | Cap | Naming | Coordination Rule |
-| --- | ---: | --- | --- |
-| `coding-agent` | 6 | `coding-1` ... `coding-6` | Each instance owns one implementation slice and must not edit outside it. |
-| `devops-agent` | 2 | `devops-1`, `devops-2` | Each instance owns one delivery, CI/CD, infra, environment, or runbook slice. |
-| `review-agent` | 4 | `review-1` ... `review-4`, or scope names | Analysts own disjoint slices; one synthesizer alone owns `review.md` and the verdict. |
-| `sa-agent` | 1 | `sa-1` or a scope name | Architecture advice is intentionally not pooled by default. |
+## Agentic Security
 
-The repo config uses `max_threads = 14` and `max_depth = 2`. The thread limit supports a spawned lead plus the maximum intended first-level role pool. The depth limit allows nested delegation, but the agent prompts instruct spawned agents not to spawn their own agents unless the user explicitly asks for recursive delegation.
+When a workflow gives agents tools, external authority, persistent context, or inter-agent communication, assess the applicable risks in the OWASP Top 10 for Agentic Applications. Consider the OWASP Agent Control Standard as a runtime control and observability design reference when supported. Record concrete controls and evidence in the spec or review. Treat NIST agent standards work as evolving guidance; do not claim compliance or certification.
 
-Codex does not provide a shared queue for this workflow. `tasks.md` is the durable plan, and every subagent prompt must include an explicit instance name, file scope, expected output, verification expectation, and warning not to overwrite peer work.
+## Configuration Boundaries
 
-## Review Lifecycle
-
-The review budget is per task group. Each independently reviewable group gets a
-durable group identifier and its own three-cycle counter. A synthesizer spawn
-consumes that group's cycle; replacements and interrupted retries count, cycles
-1 and 2 may create one fix wave, and cycle 3 is terminal for the group. The
-counter does not reset for that group's new implementation/fix wave, reviewer,
-session, or review file, and renaming or artificially splitting the group does
-not create a new budget. Independent groups may continue after one group is
-blocked, although a required blocked group prevents objective completion. The
-earlier disposable smoke project was removed; adopters must validate the
-current GPT-5.6 model availability and pool behavior in their own sandbox.
-
-## Design Decisions
-
-| Decision | Rationale |
-| --- | --- |
-| Keep agents in `.codex/agents` | Codex custom agents are project/user configuration files rather than ordinary plugin contents. |
-| Package workflow instructions as a plugin | Plugins are the shareable distribution unit for skills and prompt shortcuts. |
-| Use a repo marketplace | A checked-in `.agents/plugins/marketplace.json` lets adopters install the plugin from the repo. |
-| Keep personal-marketplace paths canonical | When installed through the default personal marketplace, Codex resolves `./plugins/codex-agent-team` to `~/plugins/codex-agent-team`; the installer creates that symlink instead of relying on `~/.codex/plugins` or `~/.agents/plugins/plugins`. |
-| Exclude runtime specs and logs | Specs, session logs, SQLite state, caches, and shell snapshots are per-user runtime artifacts. |
-| Keep hooks project-local | Adopters can inspect, trust, or disable them with Codex's normal hook review flow. |
-
-## Security Considerations
-
-- Custom agents and hooks run with the user's normal Codex permissions and sandbox settings.
-- Subagents share the repository filesystem. File boundaries are enforced by instruction, review, and user oversight rather than by OS isolation.
-- Hooks execute local Python code and must be reviewed before trust.
-- Parallel subagent lifecycle logging uses an advisory file lock around rotation and append operations.
-- Rules reduce accidental destructive operations but do not replace sandboxing, code review, or careful approval decisions.
-- Ops smoke tasks should include non-production target preflight, bounded retry and timeout behavior, abort criteria, and evidence capture before checking external endpoints.
-- No secrets, provider credentials, local auth files, or machine-specific model/provider settings are included.
-
-## Extension Points
-
-- Add domain agents as additional `.codex/agents/*.toml` files.
-- Add workflow skills under `plugins/codex-agent-team/skills`.
-- Add plugin assets only when the manifest references them.
-- Add MCP configuration only after documenting required authentication, data access, and legal/security review.
+- Custom agents live in .codex/agents/*.toml.
+- Project concurrency uses the current agents.max_concurrent_threads_per_session setting.
+- This sample does not set a model, reasoning effort, provider, or credentials.
+- Plugin skills load on demand; a new thread may be needed after changing agent or plugin files.
+- Hooks and command rules are project-local examples and require trust and review.

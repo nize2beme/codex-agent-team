@@ -104,28 +104,23 @@ Explicit user targets override generic model recommendations. When public docs
 do not establish a private/provider-specific slug, preserve the requested value
 and report the live availability check as open rather than inventing support.
 
-## GPT-5.6 Routing Policy
+## Model And Reasoning Neutrality
 
-| Model | Appropriate workload |
-| --- | --- |
-| Sol | Ambiguous, high-value, architecture, security, deep review, polished frontend, or complex tool-driven work |
-| Terra | Everyday implementation, DevOps, analysis, and efficient parallel workers |
-| Luna | Clear, repeatable, structured, high-volume, extraction, transformation, or fixed test execution |
+Do not pin model identifiers or reasoning overrides in shared project agent
+files unless the user explicitly requests fixed routing and the target Codex
+runtime supports it. Prefer inheritance from the active app or session so
+profiles continue to work as the available model catalog changes.
 
-Use the configured provider's exact IDs. For Amazon Bedrock in this setup:
+When auditing a user's existing setup, preserve explicit provider and model
+choices unless the user asks to change them. Verify current configuration
+fields and availability against official documentation; never invent a model
+identifier or assume a private provider alias. Treat model and reasoning
+selection as user or session policy, separate from role instructions.
 
-- `openai.gpt-5.6-sol`
-- `openai.gpt-5.6-terra`
-- `openai.gpt-5.6-luna`
-
-Preserve an explicit effort matrix. When no matrix exists, start at medium and
-raise effort only for a measured quality need. Reserve max for the hardest
-quality-first roles. Before raising effort, check whether the prompt lacks a
-success criterion, approval boundary, tool route, evidence requirement, output
-contract, or validation loop.
-
-Do not lower a user-approved effort merely to reduce token use. Model and
-effort routing are independent decisions.
+Before changing routing, first check whether a prompt lacks success criteria,
+approval boundaries, tool routes, evidence requirements, output contracts, or
+verification loops. Do not use a different model setting to compensate for
+missing task design.
 
 ## Audit Method
 
@@ -175,7 +170,7 @@ enforcement, or safety rules merely to make migration easier.
 
 ## Prompt And Skill Migration
 
-For GPT-5.6 prompts:
+For model-neutral role prompts:
 
 - State role and user-visible outcome first.
 - Define execution position, ownership, and approval boundaries.
@@ -242,7 +237,7 @@ Return:
 
 - changed files and exact changes
 - before/after line and word measurements
-- preserved provider/model/effort/configuration matrix
+- preserved session, provider, and configuration choices when applicable
 - parser, skill, plugin, hook, rule, discovery, and config-load evidence
 - baseline versus final representative evaluation results
 - source versus generated-cache comparison

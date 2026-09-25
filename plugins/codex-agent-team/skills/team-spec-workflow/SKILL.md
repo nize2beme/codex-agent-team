@@ -36,7 +36,7 @@ Create only the artifacts the task needs:
 - `decisions.md`: append-only decisions, blockers, deviations, accepted risks,
   and open gates
 - `review.md`: synthesizer-owned cycle history and verdicts
-- `sa-review.md`: solution-architecture findings and handoffs
+- `devops-review.md`: solution-architecture findings and handoffs
 - optional `prd/` or security evidence required by repository conventions
 
 Do not create parallel copies of the same decision. Link between artifacts and
@@ -82,14 +82,15 @@ infrastructure, migration, or tradeoffs matter. Include:
 - rollout, rollback, and reversibility
 - open design decisions
 
-For AWS or production-impacting work, include `## Security Considerations` with
-identity, trust boundaries, secrets, encryption/KMS, network exposure,
-classified data, logging/retention, state backend, backups, threat/abuse cases,
-and evidence needed for closure.
+For production-impacting or agentic work, include Security Considerations covering
+identity, authorization, trust boundaries, secrets, data protection, network
+exposure, logging and retention, recovery, threat paths, and evidence needed
+for closure. Apply agentic-security-review when tools, agents, credentials, or
+external actions are in scope.
 
-Engage `sa-agent` for IAM, KMS/encryption, network exposure, security groups,
-EKS access, stateful resources, classified storage, logging/retention, or
-Terraform/CloudFormation state backends.
+Engage devops-agent when infrastructure, delivery, stateful services,
+reliability, or production operations need specialist review. The DevOps role
+owns platform architecture findings and operational recommendations.
 
 ## Task Contract
 
@@ -100,13 +101,13 @@ Use:
 Spec refs: `spec.md#interfaces`, `requirements.md#FR-1`
 
 - [ ] [coding] Implement order validation | `src/orders/validate.ts`, `src/orders/validate.test.ts` | Match `OrderInput` and error contracts; cover empty and duplicate IDs. Run: `npm test -- orders/validate`
-- [ ] [devops] Add order table outputs | `infra/orders.tf`, `docs/config.md` | Export `orders_table_name`; KMS, PITR, tags, and docs match design. Run: `terraform -chdir=infra validate`
+- [ ] [devops] Add service deployment outputs | `infra/service.tf`, `docs/config.md` | Export the specified service outputs; encryption, backups, tags, and docs match design. Run: `terraform -chdir=infra validate`
 ```
 
 Every task must contain:
 
 - task status marker
-- role: `[coding]`, `[devops]`, or `[sa]`
+- role: `[coding]`, `[devops]`, or `[devops]`
 - action and user/system outcome
 - exact writable files and no-edit boundary
 - acceptance criteria linked to the spec
@@ -174,26 +175,21 @@ lost assurance.
 
 ## Security And Verification
 
-Task acceptance must cover applicable controls:
+Task acceptance must cover applicable controls for identity and trust,
+least-privilege access, secret handling, encryption and network boundaries,
+logging and retention, recovery, data classification, and auditability. For
+agentic systems, include applicable OWASP agentic threats and concrete tests
+or configuration evidence. Record owners and accepted residual risks.
 
-- IAM least privilege and trust
-- encryption at rest and in transit
-- KMS claims matching configuration
-- secret handling
-- network exposure and scoped egress
-- logging, retention, metrics, alarms, and auditability
-- backups/recovery and deletion protection
-- state backend encryption/locking/recovery
-- data-classification tags and classified-storage controls
-
-Use `aws-security-guidelines`, relevant AWS skills, AWS IaC MCP validation, and
-configured read-only AWS tools. Store scan/evidence artifacts under the spec
-directory when the repository requires them. Accepted risks require owner,
-reason, compensating control, expiration/revisit, and reversibility.
+Use agentic-security-review for agent and tool authority risks, plus current
+authoritative platform documentation for version-sensitive behavior. Store
+scan and verification evidence under the spec directory when required.
+Accepted risks need an owner, reason, compensating control, revisit trigger,
+and reversibility.
 
 Each task runs focused verification and applicable CI-blocking checks. Verify
-the verifier: the command must exercise the claimed behavior with pinned
-repository tooling.
+the verifier: the command must exercise the claimed behavior with repository
+tooling.
 
 ## Live-Validation Gate
 
@@ -232,7 +228,7 @@ After implementation evidence is consolidated:
 Each task group has its own maximum three-cycle budget. Its counter does not
 reset for a new implementation wave, fix wave, reviewer, review file, retry,
 interruption, or resumed session. A cycle is consumed when that group's
-synthesizer is spawned. Other independent groups may continue, but a required
+synthesizer is spawned. This is a non-resetting budget. Other independent groups may continue, but a required
 blocked group prevents objective completion.
 
 ## Documentation

@@ -1,50 +1,45 @@
 # Design: <Title>
 
-> Architecture, repository structure, and infrastructure design for `<slug>`. Keep Security Considerations for production-impacting or AWS-heavy work.
+> Architecture, repository structure, platform, infrastructure, and operational design for <slug>.
 
 ## Architecture Overview
 
-High-level description, components, and request/data flow. Link or include diagrams when useful.
+Describe components, trust boundaries, dependencies, and request or data flow. Link diagrams when useful.
 
 ## Repository / Module Structure
 
-```text
-<tree of dirs and key files this work will create or touch>
-```
+    <tree of directories and key files this work will create or touch>
 
 ## Components
 
 ### <Component Name>
 
-- Responsibility: <what it owns>
-- Interface: <public API / events / inputs and outputs>
-- Dependencies: <upstream/downstream>
+- Responsibility:
+- Interface and data flows:
+- Dependencies and owners:
 
-## Data Model
+## Data And State
 
-Entities, schemas, storage choices, retention, and data classification.
+Describe schemas, storage, retention, classification, backup, recovery, and migration where relevant.
 
-## Infrastructure Design
+## Platform And Delivery
 
-AWS services, IaC approach, environments, deploy/rollback strategy, and outputs consumed by application code or other stacks.
+Describe selected platform, infrastructure as code, environments, identity, CI/CD, deployment, health checks, rollback, and outputs consumed by other components.
 
 ## Security Considerations
 
-Reconcile against `aws-security-guidelines` when AWS or production data is involved.
+For agentic or production-impacting work, identify applicable threats and controls. Use the OWASP agentic threat taxonomy where agents or tools can affect state.
 
 - Authentication and authorization
-- Least-privilege IAM
-- Encryption at rest
-- Encryption in transit
-- Secrets management
-- Network exposure
-- Logging and audit
-- Data classification and tagging
-- Threat model notes
+- Least privilege and secrets
+- Encryption and network boundaries
+- Logging, retention, and privacy
+- Input and output validation
+- Recovery and audit evidence
 
 ## Tradeoffs And Alternatives
 
-What was considered and rejected, with reasoning.
+Record rejected options and the reason.
 
 ## Open Design Questions
 

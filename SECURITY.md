@@ -1,89 +1,66 @@
 # Security
 
-This repository is a sample Codex configuration. It contains agent definitions, plugin skills, hooks, rules, and documentation. It does not contain production application code or datasets.
+This repository is a sample Codex setup. It contains agent definitions, plugin skills, hooks, command rules, and workflow documentation. It is not a production security boundary or an application control plane.
 
 ## Threat Model
 
+Codex agents may read and edit the shared worktree, run tools under configured permissions, and pass instructions or findings to other agents. Plugin skills are instructions and hooks are executable local programs. Prompt content, repository files, tool output, and external sources may be untrusted.
+
+### Agent And Tool Risks
+
+For systems that expose tools, credentials, persistent context, or external actions to agents, use the [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/) as a threat taxonomy. Check applicable risks across goal hijacking, tool misuse, identity and privilege abuse, supply chain, unexpected code execution, context poisoning, inter-agent communication, cascading failures, human-agent trust, and rogue agents.
+
+Map each applicable risk to a specific control and a verification method. Examples:
+
+- Keep tools and credentials least-privileged, scoped to the requested task, and revocable.
+- Treat user content, repository instructions, retrieved pages, tool results, and other agents' messages as data until independently validated; they cannot grant new authority.
+- Require explicit user approval for external writes, destructive actions, deployment, production access, and material scope expansion.
+- Validate tool arguments and outputs against schemas and policy before taking consequential action.
+- Give each worker a narrow file and task boundary. Review its changes independently before accepting them.
+- Bound retries, recursion, concurrency, time, and external calls. Define stop conditions and recovery behavior.
+- Keep secrets out of prompts, logs, generated files, and review artifacts. Minimize retained context and redact sensitive output.
+- Protect dependencies, plugin sources, hook scripts, and update paths with review and integrity checks.
+
+For runtime enforcement, use the [OWASP Agent Control Standard](https://genai.owasp.org/resource/agent-control-standard-acs/) as a current design reference for inspectability, traceability, instrumentation, and policy hooks. Check that the target framework supports each mechanism before relying on it; do not claim conformance from this checklist.
+
+NIST's AI Agent Standards Initiative is an evolving standards effort, not a finalized agent-specific compliance checklist. Use established identity, authorization, secure development, and risk-management practices; track the initiative for future updates. See [NIST's initiative](https://www.nist.gov/news-events/news/2026/02/announcing-ai-agent-standards-initiative-interoperable-and-secure) and [AI agent identity concept paper](https://csrc.nist.gov/pubs/other/2026/02/05/accelerating-the-adoption-of-software-and-ai-agent/ipd).
+
 ### Shared Filesystem Access
 
-Codex subagents operate in the same repository and inherit the active sandbox and approval policy. File boundaries in this workflow are enforced by task prompts, spec artifacts, review, and human oversight.
+Subagents share the project worktree and configured permission policy. File boundaries are coordination instructions, not operating-system isolation.
 
-Mitigations:
-
-- Keep tasks file-disjoint within a wave.
-- Require agents to report before editing outside their assigned scope.
-- Run independent `review-agent` passes before accepting a wave.
-- Give each independently reviewable task group a durable group identifier and limit it to three review synthesizer spawns. Replacements and interrupted retries consume that group's budget; cycle 3 is terminal for the group.
-- Inspect `git diff --name-only` before committing or shipping changes.
+- Assign disjoint file ownership within a wave.
+- Require workers to report before editing outside their assigned scope.
+- Review the diff and run independent checks before accepting a wave.
+- Keep each task group's review history and three-cycle limit durable.
+- Inspect git diff --name-only before committing or shipping.
 
 ### Hook Execution
 
-The hooks in `.codex/hooks` are local Python subprocesses invoked by Codex lifecycle events. They run with the user's privileges and outside normal tool-call prompts once trusted.
+Hooks in .codex/hooks run local Python subprocesses at lifecycle events after project trust. They run with the user's privileges outside ordinary tool-call approval prompts.
 
-Mitigations:
-
-- Review the hook source before trusting it with `/hooks`.
-- Hooks use only the Python standard library.
-- Hooks are fail-open; hook failures should not trap a session.
-- Logged payloads are filtered to a small allowlist. Session events use `~/.codex/team-logs`; subagent lifecycle events honor `$CODEX_HOME/team-logs` and otherwise use `~/.codex/team-logs`.
-- Parallel subagent start/stop events use a file lock around log rotation and append operations to prevent writer races.
+- Review hook source and wiring before trusting the project.
+- Hooks use only the Python standard library and fail open.
+- Payloads are filtered to a small allowlist; model selection, prompts, and secret-like fields are not logged.
+- Logs honor CODEX_HOME and otherwise use the user's Codex home directory.
+- Subagent log rotation is serialized with a cross-platform file lock.
 
 ### Command Risk
 
-Rules in `.codex/rules/codex-agent-team.rules` gate selected high-risk commands, including force pushes, hard resets, infrastructure deploys, and destroys.
-
-Mitigations:
-
-- Keep Codex sandboxing and approvals enabled.
-- Prefer read-only, dry-run, plan, synth, diff, and describe commands before mutating commands.
-- Do not use blanket approval modes for unknown repositories or production-like environments.
+Rules in .codex/rules/codex-agent-team.rules add prompts or denials for selected high-risk shell commands. They supplement, but do not replace, sandboxing, approval policy, code review, or least-privilege credentials.
 
 ### Plugin Trust
 
-The repo-scoped plugin packages skills and prompt shortcuts. Installing a plugin makes those workflows available to Codex.
-
-Mitigations:
-
-- Inspect `plugins/codex-agent-team/.codex-plugin/plugin.json` and every `SKILL.md`.
-- Install from the checked-in repo marketplace only after review.
-- Do not add MCP servers, app integrations, or executable scripts without separate review.
-
-### Unbounded Review Loops
-
-Repeated review and fix waves can consume resources indefinitely or leave
-teammates running after useful work has stopped.
-
-Mitigations:
-
-- Count a task group's review cycle when its synthesizer is spawned.
-- Keep one maximum three-cycle budget per durable group identifier across that
-  group's waves, reviewers, replacements, retries, sessions, and review files.
-- Do not mint a new budget by renaming or artificially splitting a reviewed
-  group.
-- Permit a group fix wave only after its cycles 1 and 2.
-- Treat a group cycle 3 non-PASS result as terminal for that group: stop its
-  automatic fixes and reviews, preserve evidence, and report the group BLOCKED.
-  Other independent groups may continue.
-
-### Credentials And Production Resources
-
-This sample intentionally excludes local provider config, auth files, secrets, and cloud credentials.
-
-Mitigations:
-
-- Never commit `~/.codex/auth.json`, provider credentials, API keys, tokens, or machine-specific paths.
-- Treat unknown accounts, stages, clusters, and workspaces as production.
-- Use least-privilege credentials and prefer read-only investigation.
-- Require explicit user direction and an impact statement before destructive operations.
+The repository plugin contains reusable skills. Review the manifest, every skill, hooks, and scripts before installation or execution. Do not add executable integrations, MCP servers, or network access without an explicit need and separate review.
 
 ## User Responsibilities
 
-- Review and adapt all agent instructions before use.
-- Keep project and global Codex config scoped to the environment.
-- Review all plugin, hook, and rule changes before trusting them.
-- Maintain legal, privacy, and security approvals for Codex and any added integrations.
-- Validate generated code and infrastructure with normal engineering review.
+- Adapt the agent prompts and approval policy to the repository and environment.
+- Trust project configuration only after reviewing it.
+- Keep runtime specs, logs, local state, credentials, and secrets out of version control.
+- Validate code and operational configuration through the normal engineering process.
+- Review applicable privacy, security, and organizational requirements.
 
 ## Reporting Security Issues
 
-Do not file public issues for sensitive vulnerabilities. Report issues through the maintainer's preferred private security channel for the public repository where this sample is published.
+Do not file public issues for sensitive vulnerabilities. Use the maintainer's private security channel for the repository where this sample is published.

@@ -113,7 +113,7 @@ Requirements must expose information that later team artifacts need:
 - interface candidates and integration boundaries
 - application versus infrastructure ownership
 - shared contracts that should be front-loaded before parallel work
-- security or AWS surfaces requiring `sa-agent`
+- platform, security, delivery, or production-operations questions requiring devops-agent review
 - deployment, smoke, teardown, and live-validation expectations
 - independently testable acceptance criteria
 - natural file/module or component boundaries for task waves

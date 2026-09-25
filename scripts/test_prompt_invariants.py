@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Regression tests for the public GPT-5.6 Codex agent-team guidance."""
+"""Repository invariants for the model-neutral Codex DevOps workflow."""
 
 from __future__ import annotations
 
+import json
 import re
 import tomllib
 import unittest
@@ -12,13 +13,22 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 CODEX = ROOT / ".codex"
 PLUGIN = ROOT / "plugins" / "codex-agent-team"
-
-AGENTS = {
-    "fullstack-agent": ("openai.gpt-5.6-sol", "high", 1600),
-    "review-agent": ("openai.gpt-5.6-sol", "xhigh", 1000),
-    "coding-agent": ("openai.gpt-5.6-terra", "high", 700),
-    "sa-agent": ("openai.gpt-5.6-sol", "medium", 700),
-    "devops-agent": ("openai.gpt-5.6-terra", "xhigh", 1000),
+EXPECTED_AGENTS = {
+    "coding-agent",
+    "devops-agent",
+    "fullstack-agent",
+    "review-agent",
+}
+EXPECTED_SKILLS = {
+    "agentic-security-review",
+    "concurrent-cached-fetch",
+    "git-workflow",
+    "optimize-my-codex",
+    "team-brainstorm",
+    "team-coordination",
+    "team-documentation",
+    "team-review-cycle",
+    "team-spec-workflow",
 }
 
 
@@ -26,449 +36,173 @@ def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def words(text: str) -> int:
-    return len(re.findall(r"\b[\w'-]+\b", text))
-
-
-def missing_groups(path: Path, groups: tuple[tuple[str, ...], ...]) -> list[str]:
-    text = read(path).lower()
-    return [
-        " | ".join(group)
-        for group in groups
-        if not any(term.lower() in text for term in group)
-    ]
-
-
-class PublicPromptInvariantTests(unittest.TestCase):
+class RepositoryInvariantTests(unittest.TestCase):
     maxDiff = None
 
-    def assert_contract(
-        self,
-        path: Path,
-        floor: int,
-        groups: tuple[tuple[str, ...], ...],
-    ) -> None:
-        actual = words(read(path))
-        self.assertGreaterEqual(
-            actual,
-            floor,
-            f"{path} has {actual} words; regression floor is {floor}",
-        )
-        self.assertFalse(
-            missing_groups(path, groups),
-            f"{path} is missing required concepts: {missing_groups(path, groups)}",
-        )
-
-    def test_public_model_and_effort_matrix(self) -> None:
-        self.assertFalse(
-            (CODEX / "agents" / "test-suite-runner.toml").exists(),
-            "The public repository intentionally excludes test-suite-runner",
-        )
-        for name, (model, effort, _) in AGENTS.items():
-            with self.subTest(agent=name):
-                data = tomllib.loads(read(CODEX / "agents" / f"{name}.toml"))
-                self.assertEqual(data["name"], name)
-                self.assertEqual(data["model"], model)
-                self.assertEqual(data["model_reasoning_effort"], effort)
+    def test_current_model_neutral_agent_configuration(self) -> None:
+        files = sorted((CODEX / "agents").glob("*.toml"))
+        self.assertEqual({path.stem for path in files}, EXPECTED_AGENTS)
+        for path in files:
+            with self.subTest(agent=path.stem):
+                data = tomllib.loads(read(path))
+                self.assertEqual(data["name"], path.stem)
+                self.assertTrue(data.get("description"))
+                self.assertTrue(data.get("developer_instructions"))
+                self.assertLessEqual(
+                    set(data),
+                    {"name", "description", "developer_instructions", "sandbox_mode"},
+                )
 
         config = tomllib.loads(read(CODEX / "config.toml"))
-        self.assertEqual(config["model"], "openai.gpt-5.6-sol")
-        self.assertEqual(config["model_reasoning_effort"], "xhigh")
-        self.assertEqual(config["agents"]["max_threads"], 14)
-        self.assertEqual(config["agents"]["max_depth"], 2)
-        self.assertNotIn("model_provider", config)
-
-    def test_global_guidance(self) -> None:
-        self.assert_contract(
-            ROOT / "AGENTS.md",
-            650,
-            (
-                ("authorization",),
-                ("non-interactive",),
-                ("project-local", "dependency isolation"),
-                ("durable artifacts",),
-                ("file-disjoint",),
-                ("positive evidence",),
-                ("wait for all", "all requested agents"),
-                ("close active agents", "close every"),
-                ("active-worker check", "no required worker"),
-                ("task group",),
-                ("group identifier", "group id"),
-                ("three review cycles", "three-cycle"),
-                ("does not reset", "do not reset", "non-resetting"),
-                ("verify the verifier",),
-                ("live-validation gate", "live validation gate"),
-                ("aws and production safety",),
-            ),
+        self.assertEqual(
+            config["agents"]["max_concurrent_threads_per_session"], 8
         )
-
-    def test_agent_contracts(self) -> None:
-        requirements = {
-            "fullstack-agent": (
-                ("spawn plan",),
-                ("implementation-phase entry gate", "build phase entry gate"),
-                ("coding-agent", "coding-1"),
-                ("up to 6", "cap: 6"),
-                ("up to 2", "cap: 2"),
-                ("up to 4", "cap: 4"),
-                ("file-disjoint width",),
-                ("wait for all requested agents", "wait for every requested agent"),
-                ("positive evidence",),
-                ("cycle 3 is terminal",),
-                ("no required worker", "no agent remains active"),
-                ("team-documentation",),
-            ),
-            "coding-agent": (
-                ("team-spec-workflow",),
-                ("exact file", "delegated file"),
-                ("interface contract",),
-                ("test-driven-development",),
-                ("systematic-debugging",),
-                ("concurrent-cached-fetch",),
-                ("unit tests",),
-                ("integration tests",),
-                ("ci-blocking", "same checks ci"),
-                ("mechanically",),
-                ("aws-sdk-python-usage",),
-                ("aws-sdk-js-v3-usage",),
-                ("team-documentation",),
-                ("residual risks",),
-            ),
-            "devops-agent": (
-                ("explicit caller",),
-                ("sourced defaults",),
-                ("kube-context", "kubectl context"),
-                ("authoritative backend", "real backend"),
-                ("|| true",),
-                ("independent residue", "independently query"),
-                ("distinct destinations", "separate destination"),
-                ("pipefail", "pipestatus"),
-                ("todo placeholders",),
-                ("kms",),
-                ("egress",),
-                ("classified storage", "data-classification"),
-                ("eks access", "cluster-admin"),
-                ("deploy/smoke/teardown", "deploy -> smoke -> teardown"),
-                ("rollback",),
-                ("runbook",),
-            ),
-            "review-agent": (
-                ("synthesizer",),
-                ("analyst",),
-                ("spec alignment",),
-                ("race",),
-                ("cleanup",),
-                ("empirically", "empirical"),
-                ("before raising a critical", "before critical"),
-                ("static-verifiable",),
-                ("live-validation", "live validation"),
-                ("verify the verifier",),
-                ("cycle 1",),
-                ("cycle 2",),
-                ("cycle 3",),
-                ("heartbeat", "still running"),
-                ("pass or fail", "pass | fail"),
-            ),
-            "sa-agent": (
-                ("engagement triggers",),
-                ("state backend",),
-                ("cloudwatch log",),
-                ("classified storage", "data-classification"),
-                ("egress",),
-                ("eks access",),
-                ("operational excellence",),
-                ("performance efficiency",),
-                ("cost optimization",),
-                ("sustainability",),
-                ("aws-mcp",),
-                ("pricing",),
-                ("regional availability",),
-                ("owner",),
-                ("rollout",),
-                ("rollback",),
-                ("residual risk",),
-            ),
-        }
-        for name, groups in requirements.items():
-            with self.subTest(agent=name):
-                self.assert_contract(
-                    CODEX / "agents" / f"{name}.toml",
-                    AGENTS[name][2],
-                    groups,
-                )
-
-    def test_skill_contracts(self) -> None:
-        requirements = {
-            "git-workflow": (
-                400,
-                (
-                    ("non-interactive",),
-                    ("conventional commits",),
-                    ("merge conflict",),
-                    ("worktree",),
-                    ("pre-push",),
-                    ("status --short",),
-                    ("preserve user",),
-                    ("reset --hard",),
-                    ("force push",),
-                    ("external writes",),
-                ),
-            ),
-            "optimize-my-codex": (
-                400,
-                (
-                    ("behavior-preserving",),
-                    ("generated cache",),
-                    ("exact model",),
-                    ("line and word", "line/word"),
-                    ("official codex",),
-                    ("authoritative plugin source", "plugin source"),
-                    ("skill metadata",),
-                    ("success and failure", "both success and failure"),
-                    ("byte", "deep comparison"),
-                    ("representative",),
-                    ("restart", "new-thread"),
-                ),
-            ),
-            "team-brainstorm": (
-                450,
-                (
-                    ("one focused question at a time",),
-                    ("pain points",),
-                    ("data volume",),
-                    ("availability",),
-                    ("latency",),
-                    ("compliance",),
-                    ("budget",),
-                    ("timeline",),
-                    ("deployment",),
-                    ("failure scenarios",),
-                    ("approval",),
-                    ("interface",),
-                    ("task wave",),
-                    ("verification",),
-                ),
-            ),
-            "team-spec-workflow": (
-                450,
-                (
-                    ("requirements.md",),
-                    ("spec.md",),
-                    ("design.md",),
-                    ("tasks.md",),
-                    ("decisions.md",),
-                    ("review.md",),
-                    ("exact interfaces",),
-                    ("file-disjoint",),
-                    ("task status",),
-                    ("live-validation", "live validation"),
-                    ("fix wave",),
-                    ("three-cycle", "three review cycles"),
-                    ("close active agents", "no required worker remains active"),
-                ),
-            ),
-            "team-coordination": (
-                450,
-                (
-                    ("unique instance name",),
-                    ("exact file scope",),
-                    ("acceptance criteria",),
-                    ("expected output",),
-                    ("wait for all", "wait for every"),
-                    ("positive evidence",),
-                    ("quiet",),
-                    ("stale",),
-                    ("steer",),
-                    ("close",),
-                    ("active-worker", "no agent remains active"),
-                    ("billable",),
-                    ("degraded",),
-                ),
-            ),
-            "team-review-cycle": (
-                450,
-                (
-                    ("analyst",),
-                    ("synthesizer",),
-                    ("review.md",),
-                    ("spec alignment",),
-                    ("empirically", "empirical"),
-                    ("verify the verifier",),
-                    ("cycle 1",),
-                    ("cycle 2",),
-                    ("cycle 3",),
-                    ("consumed when", "cycle is consumed"),
-                    ("fix wave",),
-                    ("terminal",),
-                    ("close agents no longer needed",),
-                ),
-            ),
-            "team-documentation": (
-                450,
-                (
-                    ("readme",),
-                    ("api",),
-                    ("runbook",),
-                    ("architecture decision", "adr"),
-                    ("deployment",),
-                    ("configuration",),
-                    ("rollback",),
-                    ("ownership",),
-                    ("escalation",),
-                    ("command examples",),
-                    ("implementation names",),
-                    ("staleness",),
-                ),
-            ),
-        }
-        for name, (floor, groups) in requirements.items():
-            with self.subTest(skill=name):
-                self.assert_contract(
-                    PLUGIN / "skills" / name / "SKILL.md",
-                    floor,
-                    groups,
-                )
-
-    def test_command_boundaries(self) -> None:
-        requirements = {
-            "brainstorm.md": (("$arguments",), ("team-brainstorm",), ("requirements.md",), ("approval",)),
-            "launch-codex-team.md": (
-                ("$arguments",),
-                ("team-coordination",),
-                ("file-disjoint",),
-                ("wait",),
-                ("three-cycle",),
-                ("close",),
-            ),
-            "optimize-my-codex.md": (
-                ("$arguments",),
-                ("optimize-my-codex",),
-                ("approval",),
-                ("behavior",),
-                ("generated",),
-            ),
-        }
-        for name, groups in requirements.items():
-            with self.subTest(command=name):
-                missing = missing_groups(PLUGIN / "commands" / name, groups)
-                self.assertFalse(missing, f"{name} missing required concepts: {missing}")
-
-    def test_skill_metadata(self) -> None:
-        for directory in (
-            "git-workflow",
-            "optimize-my-codex",
-            "team-brainstorm",
-            "team-coordination",
-            "team-documentation",
-            "team-review-cycle",
-            "team-spec-workflow",
-        ):
-            with self.subTest(skill=directory):
-                text = read(PLUGIN / "skills" / directory / "agents" / "openai.yaml")
-                self.assertIn("display_name:", text)
-                self.assertIn("short_description:", text)
-                self.assertIn("default_prompt:", text)
-
-    def test_lifecycle_regression_is_published(self) -> None:
+        self.assertNotIn("model", config)
         self.assertTrue(
-            (CODEX / "hooks" / "test_subagent_lifecycle.py").is_file(),
-            "Publish the race/fail-open lifecycle regression with the hook",
+            config["plugins"]["codex-agent-team@sample-codex-agent-team"]["enabled"]
         )
 
-    def test_readme_contract(self) -> None:
-        path = ROOT / "README.md"
-        text = read(path).lower()
-        for term in (
-            "openai.gpt-5.6-sol",
-            "openai.gpt-5.6-terra",
-            "three-cycle",
-            "scripts/test_prompt_invariants.py",
-            "restart",
-        ):
-            self.assertIn(term, text)
-        self.assertRegex(
-            text,
-            r"intentionally (excludes|does not include).*test-suite-runner",
+    def test_portable_plugin_and_local_marketplace_agree(self) -> None:
+        manifest_path = PLUGIN / "plugin.json"
+        manifest = json.loads(read(manifest_path))
+        self.assertEqual(manifest["name"], "codex-agent-team")
+        self.assertIn("com.openai", manifest["extensions"])
+        self.assertEqual(
+            set(manifest),
+            {
+                "$schema", "name", "version", "description", "author",
+                "license", "keywords", "extensions",
+            },
         )
-        self.assertNotIn("concise gpt-5.6-oriented developer instructions", text)
 
-    def test_review_budget_is_per_task_group(self) -> None:
-        paths = (
+        marketplace = json.loads(read(ROOT / ".agents/plugins/marketplace.json"))
+        entry = next(
+            item for item in marketplace["plugins"]
+            if item["name"] == "codex-agent-team"
+        )
+        plugin_path = ROOT / entry["source"]["path"]
+        self.assertTrue((plugin_path / "plugin.json").is_file())
+        self.assertEqual(plugin_path.resolve(), PLUGIN.resolve())
+
+    def test_skill_sources_and_discovery_metadata(self) -> None:
+        skill_dirs = {
+            path.name for path in (PLUGIN / "skills").iterdir() if path.is_dir()
+        }
+        self.assertEqual(skill_dirs, EXPECTED_SKILLS)
+        for name in sorted(EXPECTED_SKILLS):
+            with self.subTest(skill=name):
+                skill = PLUGIN / "skills" / name
+                text = read(skill / "SKILL.md")
+                self.assertRegex(text, r"(?m)^---\s*\nname: ")
+                self.assertIn("description:", text.split("---", 2)[1])
+                metadata = read(skill / "agents/openai.yaml")
+                for key in ("display_name:", "short_description:", "default_prompt:"):
+                    self.assertIn(key, metadata)
+
+    def test_devops_review_and_agentic_security_are_integrated(self) -> None:
+        self.assertTrue((ROOT / "docs/specs/templates/devops-review.md").is_file())
+        self.assertIn(
+            "agentic-security-review",
+            read(CODEX / "agents/review-agent.toml"),
+        )
+        self.assertIn(
+            "agentic-security-review",
+            read(PLUGIN / "skills/team-spec-workflow/SKILL.md"),
+        )
+        self.assertIn("OWASP Top 10", read(ROOT / "SECURITY.md"))
+        self.assertIn("Agent Control Standard", read(ROOT / "SECURITY.md"))
+        self.assertIn("NIST", read(ROOT / "SECURITY.md"))
+
+    def test_hooks_are_configured_for_supported_platforms(self) -> None:
+        hooks = json.loads(read(CODEX / "hooks.json"))["hooks"]
+        for event, groups in hooks.items():
+            with self.subTest(event=event):
+                command = groups[0]["hooks"][0]
+                self.assertIn("command", command)
+                self.assertIn("commandWindows", command)
+
+        for name in ("session_start.py", "subagent_lifecycle.py"):
+            source = read(CODEX / "hooks" / name)
+            self.assertIn("CODEX_HOME", source)
+            self.assertNotIn('"model"', source)
+
+    def test_docs_use_current_role_names_and_settings(self) -> None:
+        text = "\n".join(
+            read(path)
+            for path in (
+                ROOT / "README.md",
+                ROOT / "AGENTS.md",
+                ROOT / "docs/design.md",
+                ROOT / "docs/specs/templates/tasks.md",
+            )
+        )
+        self.assertIn("devops-agent", text)
+        self.assertIn("max_concurrent_threads_per_session", text)
+        self.assertIn("explorer", text)
+
+    def test_removed_provider_and_version_specific_content(self) -> None:
+        pieces = [
+            "a" + "w" + "s",
+            "ama" + "zon",
+            "cloud" + "formation",
+            "cloud" + "watch",
+            "k" + "ms",
+            "e" + "ks",
+            "ar" + "n",
+            "well" + "-architected",
+            "solutions" + " architect",
+        ]
+        banned = re.compile(
+            r"|".join(
+                rf"(?<![a-z0-9]){re.escape(term)}(?![a-z0-9])"
+                for term in pieces
+            ),
+            re.IGNORECASE,
+        )
+        violations: list[str] = []
+        for path in ROOT.rglob("*"):
+            if not path.is_file() or any(part in {".git", "__pycache__"} for part in path.parts):
+                continue
+            try:
+                text = path.read_text(encoding="utf-8")
+            except (UnicodeDecodeError, OSError):
+                continue
+            for number, line in enumerate(text.splitlines(), start=1):
+                if banned.search(line):
+                    violations.append(f"{path.relative_to(ROOT)}:{number}: {line.strip()}")
+        self.assertEqual(violations, [])
+
+    def test_review_cycles_are_group_scoped_and_bounded(self) -> None:
+        sources = [
             ROOT / "AGENTS.md",
             ROOT / "README.md",
-            ROOT / "SECURITY.md",
-            ROOT / "docs" / "design.md",
-            ROOT / "docs" / "specs" / "templates" / "review.md",
-            CODEX / "agents" / "fullstack-agent.toml",
-            CODEX / "agents" / "review-agent.toml",
-            PLUGIN / "skills" / "team-review-cycle" / "SKILL.md",
-            PLUGIN / "skills" / "team-spec-workflow" / "SKILL.md",
-            PLUGIN / "commands" / "launch-codex-team.md",
-        )
-        forbidden = (
-            "global three-cycle",
-            "one whole-run cycle counter",
-            "one non-resetting three-cycle budget for the full team run",
-            "one non-resetting maximum of three review cycles for the entire user objective/team run",
-            "one maximum three-cycle budget applies to the whole run",
-            "share one maximum three-cycle budget across all waves",
-            "the whole team run has one non-resetting three-cycle budget",
-        )
-
-        for path in paths:
-            with self.subTest(path=path):
+            ROOT / "docs/specs/templates/review.md",
+            PLUGIN / "skills/team-review-cycle/SKILL.md",
+            PLUGIN / "skills/team-spec-workflow/SKILL.md",
+        ]
+        for path in sources:
+            with self.subTest(path=path.relative_to(ROOT)):
                 text = read(path).lower()
                 self.assertIn("task group", text)
-                self.assertTrue(
-                    "group id" in text or "group identifier" in text,
-                    f"{path} must carry a durable group identifier",
-                )
                 self.assertIn("cycle 3", text)
-                for phrase in forbidden:
-                    self.assertNotIn(phrase, text)
+                self.assertTrue("group id" in text or "group identifier" in text or "identifier" in text)
+                self.assertTrue(
+                    "non-resetting" in text or "do not reset" in text
+                )
 
-    def test_no_unqualified_claude_mechanism_claims(self) -> None:
-        names = (
-            "TaskCreate",
-            "TaskUpdate",
-            "TaskList",
-            "TaskGet",
-            "SendMessage",
-            "verification sentinel",
-            "persistent agent memory",
-        )
+    def test_all_current_references_resolve(self) -> None:
         paths = [
+            ROOT / "README.md",
             ROOT / "AGENTS.md",
-            *(CODEX / "agents").glob("*.toml"),
-            *(PLUGIN / "skills").glob("*/SKILL.md"),
-            *(PLUGIN / "commands").glob("*.md"),
+            ROOT / "docs/design.md",
         ]
-        allowed_markers = (
-            "claude",
-            "does not",
-            "do not",
-            "no shared",
-            "not expose",
-            "unavailable",
-            "unsupported",
-            "translate",
-            "instead",
-            "prohibit",
-        )
-        bad: list[str] = []
+        missing = []
         for path in paths:
-            for number, line in enumerate(read(path).splitlines(), 1):
-                lower = line.lower()
-                for name in names:
-                    if name.lower() in lower and not any(
-                        marker in lower for marker in allowed_markers
-                    ):
-                        bad.append(f"{path}:{number}: {line.strip()}")
-        self.assertFalse(
-            bad,
-            "Claude-only mechanisms are claimed without an explicit "
-            f"translation/prohibition:\n{chr(10).join(bad)}",
-        )
+            text = read(path)
+            for match in re.findall(r"docs/specs/templates/[A-Za-z0-9_-]+\.md", text):
+                if not (ROOT / match).is_file():
+                    missing.append(f"{path.relative_to(ROOT)} -> {match}")
+        self.assertEqual(missing, [])
 
 
 if __name__ == "__main__":

@@ -44,7 +44,6 @@ Do not assume an implicit shared task store or mechanically enforced claiming.
 | `coding-agent` | 6 | `coding-1` through `coding-6` | Product code, tests, refactors, bounded fixes |
 | `devops-agent` | 2 | `devops-1`, `devops-2` | IaC, CI/CD, containers, environment, runbooks |
 | `review-agent` | 4 | `review-1` through `review-4` | One synthesizer plus optional analysts |
-| `sa-agent` | 1 | `sa-1` | AWS architecture, security, reliability, performance, cost |
 
 Every worker has a globally unique instance name within the run. Never launch
 two active agents under the same identity.

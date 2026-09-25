@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" role="img" aria-labelledby="title description">
+  <title id="title">Codex delivery workflow</title>
+  <desc id="description">Codex Desktop or CLI coordinates role agents and on-demand skills over a shared repository, followed by tests and independent review.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#47605b"/>
+    </marker>
+    <style>
+      text { font-family: Inter, ui-sans-serif, system-ui, sans-serif; fill: #183b34; }
+      .title { font-size: 30px; font-weight: 700; }
+      .label { font-size: 19px; font-weight: 650; }
+      .body { font-size: 15px; fill: #35544e; }
+      .node { fill: #ffffff; stroke: #7da59a; stroke-width: 2; rx: 16; }
+      .accent { fill: #e7f3ee; stroke: #3f806e; stroke-width: 2; rx: 16; }
+      .flow { fill: none; stroke: #47605b; stroke-width: 2.5; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1200" height="560" rx="22" fill="#f5f8f6"/>
+  <text x="56" y="62" class="title">Codex delivery workflow</text>
+  <text x="56" y="91" class="body">Model-neutral roles, narrow authority, on-demand skills, and evidence-led review</text>
+
+  <rect x="55" y="185" width="205" height="112" class="accent"/>
+  <text x="157" y="226" text-anchor="middle" class="label">Codex Desktop / CLI</text>
+  <text x="157" y="255" text-anchor="middle" class="body">User goal and approval policy</text>
+
+  <rect x="350" y="170" width="230" height="140" class="accent"/>
+  <text x="465" y="211" text-anchor="middle" class="label">Main thread</text>
+  <text x="465" y="241" text-anchor="middle" class="body">Scope · plan · integrate</text>
+  <text x="465" y="264" text-anchor="middle" class="body">verify · report</text>
+
+  <rect x="700" y="117" width="255" height="190" class="node"/>
+  <text x="827" y="154" text-anchor="middle" class="label">Role agents</text>
+  <text x="827" y="190" text-anchor="middle" class="body">Coding · bounded implementation</text>
+  <text x="827" y="220" text-anchor="middle" class="body">DevOps · platform and delivery</text>
+  <text x="827" y="250" text-anchor="middle" class="body">Review · independent evidence</text>
+  <text x="827" y="280" text-anchor="middle" class="body">Explorer · built-in read-only map</text>
+
+  <rect x="700" y="350" width="255" height="112" class="node"/>
+  <text x="827" y="390" text-anchor="middle" class="label">Skills on demand</text>
+  <text x="827" y="420" text-anchor="middle" class="body">Specs · coordination · DevOps</text>
+  <text x="827" y="443" text-anchor="middle" class="body">agentic security · Git · docs</text>
+
+  <rect x="1010" y="185" width="145" height="112" class="accent"/>
+  <text x="1082" y="226" text-anchor="middle" class="label">Repository</text>
+  <text x="1082" y="255" text-anchor="middle" class="body">Code · tests</text>
+  <text x="1082" y="278" text-anchor="middle" class="body">specs · config</text>
+
+  <rect x="350" y="390" width="230" height="92" class="node"/>
+  <text x="465" y="428" text-anchor="middle" class="label">Evidence gate</text>
+  <text x="465" y="456" text-anchor="middle" class="body">Tests and review before acceptance</text>
+
+  <path d="M 260 241 H 350" class="flow"/>
+  <path d="M 580 208 C 625 208 650 188 700 188" class="flow"/>
+  <path d="M 580 270 C 625 270 650 380 700 396" class="flow"/>
+  <path d="M 955 208 H 1010" class="flow"/>
+  <path d="M 700 420 C 650 460 620 450 580 445" class="flow"/>
+  <path d="M 465 390 V 310" class="flow"/>
+</svg>

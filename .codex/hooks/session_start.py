@@ -9,14 +9,21 @@ import sys
 from datetime import datetime, timezone
 
 
-LOG_DIR = os.path.expanduser("~/.codex/team-logs")
+def codex_home() -> str:
+    configured = os.environ.get("CODEX_HOME")
+    if configured:
+        return os.path.abspath(os.path.expanduser(configured))
+    home = os.environ.get("HOME") or os.environ.get("USERPROFILE") or os.path.expanduser("~")
+    return os.path.join(os.path.abspath(os.path.expanduser(home)), ".codex")
+
+
+LOG_DIR = os.path.join(codex_home(), "team-logs")
 LOG_PATH = os.path.join(LOG_DIR, "session-events.jsonl")
 MAX_LOG_BYTES = 1_048_576
 BACKUP_COUNT = 3
 ALLOWED_PAYLOAD_KEYS = {
     "cwd",
     "hook_event_name",
-    "model",
     "permission_mode",
     "session_id",
     "source",
@@ -44,7 +51,9 @@ def rotate_log(path: str) -> None:
         pass
 
 
-def filtered_payload(payload: dict) -> dict:
+def filtered_payload(payload: object) -> dict:
+    if not isinstance(payload, dict):
+        return {}
     return {
         key: value
         for key, value in payload.items()
@@ -59,13 +68,13 @@ def main() -> int:
     except Exception:
         payload = {}
 
-    os.makedirs(LOG_DIR, exist_ok=True)
-    record = {
-        "captured_at": now(),
-        "event": "SessionStart",
-        "payload": filtered_payload(payload) if isinstance(payload, dict) else {},
-    }
     try:
+        os.makedirs(LOG_DIR, exist_ok=True)
+        record = {
+            "captured_at": now(),
+            "event": "SessionStart",
+            "payload": filtered_payload(payload),
+        }
         rotate_log(LOG_PATH)
         with open(LOG_PATH, "a", encoding="utf-8") as handle:
             handle.write(json.dumps(record) + "\n")

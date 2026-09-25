@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agentic Security Review"
+  short_description: "Threat-model agent tools and authority"
+  default_prompt: "Use $agentic-security-review to map agent authority, applicable OWASP risks, concrete controls, tests, and residual risks."

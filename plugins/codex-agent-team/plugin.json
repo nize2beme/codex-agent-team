@@ -1,0 +1,43 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "codex-agent-team",
+  "version": "0.2.0",
+  "description": "Model-neutral Codex workflow for software delivery, DevOps, and independent review.",
+  "author": {
+    "name": "Rubab Khan"
+  },
+  "license": "MIT-0",
+  "keywords": [
+    "codex",
+    "agents",
+    "subagents",
+    "software-development",
+    "devops",
+    "security",
+    "review"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Codex Agent Team",
+        "shortDescription": "Spec-driven Codex delivery workflow",
+        "longDescription": "A model-neutral Codex workflow with role agents, on-demand skills, prompt examples, and bounded review loops.",
+        "developerName": "Rubab Khan",
+        "category": "Developer Tools",
+        "capabilities": [
+          "Interactive",
+          "Read",
+          "Write"
+        ],
+        "defaultPrompt": [
+          "Plan this work with the Codex team",
+          "Break this delivery into file-disjoint coding, DevOps, and review scopes",
+          "Turn this idea into a .codex/specs plan",
+          "Review this platform design or delivery change with devops-agent",
+          "Use git-workflow to prepare a safe branch, diff, commit, or pull request handoff"
+        ],
+        "brandColor": "#145A32"
+      }
+    }
+  }
+}

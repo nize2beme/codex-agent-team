@@ -140,9 +140,9 @@ without losing evidence or affected files.
 
 - Trust-boundary validation, authentication, authorization, injection
 - Secrets, logging, data exposure, unsafe defaults
-- IAM least privilege and trust
+- least-privilege identity and trust
 - Network exposure and scoped egress
-- Encryption/KMS, classified storage, retention, and auditability
+- Encryption, classified storage, retention, and auditability
 
 ### Performance
 
@@ -197,23 +197,24 @@ For long review/verification commands, return a concise heartbeat through the
 available handoff channel. Quiet execution is not failure and does not justify
 a replacement synthesizer.
 
-## Delivery And AWS Evidence
+## Delivery And Agentic Evidence
 
-Static lint, synth, validate, plan, and unit tests cannot prove runtime account,
-region, profile, workspace, backend, kube-context, config precedence, provider
-semantics, real pipeline status, smoke target, destroy behavior, or residue.
+Static lint, validate, plan, and unit tests cannot establish live target
+identity, environment selection, config precedence, pipeline behavior, health,
+rollback, or residue.
 
-For IaC, deploy scripts, CI/CD, and shell tooling:
+For infrastructure, deployment, CI/CD, and operational changes:
 
-- inspect static checks
-- require deploy/smoke/teardown or closest safe executable equivalent when the
-  acceptance criteria require it
-- check rollback and authoritative-state handling
-- require independent residue evidence
-- preserve an open live-validation gate when execution cannot run
+- inspect static checks and confirm their actual scope
+- require approved deploy/smoke/teardown or a safe executable equivalent when
+  acceptance criteria depend on runtime behavior
+- check rollback, recovery, authoritative state, cleanup, and independent
+  residue evidence
+- preserve an open live-validation gate when execution is unavailable
 
-Use `aws-security-guidelines`, relevant AWS skills, AWS IaC MCP validation, and
-current read-only AWS facts when AWS behavior is material.
+When agent tools, credentials, plugins, persistent context, or external actions
+are in scope, use agentic-security-review and verify applicable controls in
+source or configuration. Instructions alone are not evidence of enforcement.
 
 ## Severity
 

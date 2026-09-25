@@ -32,7 +32,7 @@ What we are solving and why. State the user-facing or business outcome in one pa
 
 ## Interfaces And Contracts
 
-Shared types, API signatures, resource names, ARNs, event schemas, payloads, env vars, and outputs that tasks produce or consume.
+Shared types, API signatures, resource names, identifiers, event schemas, payloads, env vars, and outputs that tasks produce or consume.
 
 ## Edge Cases And Risks
 

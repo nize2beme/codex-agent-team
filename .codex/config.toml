@@ -1,38 +1,5 @@
-model = "openai.gpt-5.6-terra"
-model_reasoning_effort = "medium"
-
 [agents]
-max_threads = 14
-max_depth = 2
+max_concurrent_threads_per_session = 8
 
-[plugins."aws-core@agent-toolkit-for-aws"]
-enabled = true
-
-[plugins."aws-data-analytics@agent-toolkit-for-aws"]
-enabled = true
-
-[plugins."superpowers@openai-api-curated"]
-enabled = true
-
-[mcp_servers.awslabs_aws_iac_mcp_server]
-command = "uvx"
-args = ["awslabs.aws-iac-mcp-server@latest"]
-startup_timeout_sec = 120
-tool_timeout_sec = 120
-enabled = true
-
-[mcp_servers.awslabs_aws_iac_mcp_server.env]
-AWS_PROFILE = "default"
-FASTMCP_LOG_LEVEL = "ERROR"
-
-[mcp_servers.context7]
-command = "npx"
-args = ["-y", "@upstash/context7-mcp@latest"]
-startup_timeout_sec = 200
-tool_timeout_sec = 200
-default_tools_approval_mode = "approve"
-enabled = true
-
-[mcp_servers.deepwiki]
-url = "https://mcp.deepwiki.com/mcp"
+[plugins."codex-agent-team@sample-codex-agent-team"]
 enabled = true

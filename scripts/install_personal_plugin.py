@@ -131,7 +131,7 @@ def main() -> int:
 
     repo_root = Path(__file__).resolve().parents[1]
     plugin_source = repo_root / "plugins" / PLUGIN_NAME
-    plugin_manifest = plugin_source / ".codex-plugin" / "plugin.json"
+    plugin_manifest = plugin_source / "plugin.json"
     if not plugin_manifest.exists():
         print(f"Missing plugin manifest: {plugin_manifest}", file=sys.stderr)
         return 1

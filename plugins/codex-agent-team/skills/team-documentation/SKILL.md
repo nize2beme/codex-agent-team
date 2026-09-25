@@ -21,11 +21,11 @@ or operational contracts.
   inline function/class/module documentation
 - `devops-agent`: deployment, CI/CD, configuration, environment contracts,
   resource maps, rollback, teardown, and runbooks
-- `sa-agent`: architecture review, Well-Architected findings, cost/risk
+- devops-agent: platform architecture review, operational findings, and cost/risk assumptions
   assumptions, and architecture handoffs
 - lead: top-level README and cross-task reconciliation after review PASS
 - review synthesizer: sole owner of `review.md`
-- `sa-agent`: owner of `sa-review.md`
+- devops-agent: platform architecture review, operational findings, and cost/risk assumptions
 
 Assign one writer for each shared documentation file. Concurrent agents must
 not edit the same README, runbook, ADR, or API document.
@@ -214,7 +214,7 @@ Link superseding ADRs instead of rewriting historical decisions.
 Before completion:
 
 1. Re-read current implementation and config.
-2. Compare every environment variable, API, resource, output, ARN, port, URL,
+2. Compare every environment variable, API, resource, output, resource identifier, port, URL,
    path, command, flag, default, and example with current files.
 3. Run command examples or the safest non-mutating validation that proves their
    syntax and scope.
@@ -222,7 +222,7 @@ Before completion:
    tooling.
 5. Confirm deploy/rollback/teardown docs identify targets and safety gates.
 6. Check links and referenced files.
-7. Use current AWS or library documentation for version-sensitive facts.
+7. Use current authoritative platform or library documentation for version-sensitive facts.
 8. Search for old names and contradictory instructions.
 9. Record unresolved runtime validation and staleness risk.
 
