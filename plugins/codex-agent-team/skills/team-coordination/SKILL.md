@@ -52,6 +52,13 @@ Caps are ceilings, not quotas. Pool width equals the number of currently
 claimable, file-disjoint tasks for that role, clamped to the cap. A future task,
 blocked task, or same-file task does not justify another active worker.
 
+These role ceilings do not add together into available capacity. Before each
+wave, apply the effective Codex limit from
+`agents.max_concurrent_threads_per_session` (or Codex's default when unset) to
+the total open spawned-agent threads across all roles, including review
+synthesizers and analysts. Launch no more agents than the remaining global
+slots after counting already-open threads.
+
 Under-provision before over-provisioning. An idle pool adds stale messages,
 duplicate effort, rate-limit pressure, and same-file race risk.
 
@@ -95,11 +102,14 @@ its files, interface, or definition of done.
 
 Before launch:
 
-1. Confirm shared interfaces are stable enough for parallel work.
-2. Confirm no two active tasks write the same file.
-3. Determine intended width from claimable tasks.
-4. Assign unique names and record ownership.
-5. Identify which agents must all return before consolidation.
+1. Determine the effective global agent-thread limit and count currently open
+   spawned-agent threads. Leave the primary thread out of this count.
+2. Confirm shared interfaces are stable enough for parallel work.
+3. Confirm no two active tasks write the same file.
+4. Determine intended width from claimable tasks, role ceilings, and remaining
+   global slots. The sum of the new wave cannot exceed those slots.
+5. Assign unique names and record ownership.
+6. Identify which agents must all return before consolidation.
 
 Spawn the intended pool concurrently using parallel tool calls. Do not launch
 one independent worker, wait for it, then launch the next. A concurrent launch

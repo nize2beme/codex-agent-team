@@ -52,7 +52,14 @@ Define shared interfaces before dependent work: signatures, payloads, schemas, e
 
 Every task must name the role and unique worker instance, exact writable files and a no-edit boundary, acceptance criteria linked to the spec, produced and consumed interfaces, dependencies and merge owner, verification command or precise evidence, and expected completion handoff.
 
-Use the widest safe file-disjoint wave. No concurrent workers own the same file. A wave boundary must reflect a real contract or ordering dependency. Pool caps are ceilings, not quotas: coding-agent up to 6, devops-agent up to 2, review-agent up to 4 total.
+Use the widest safe file-disjoint wave. No concurrent workers own the same
+file. A wave boundary must reflect a real contract or ordering dependency.
+Pool caps are ceilings, not quotas: coding-agent up to 6, devops-agent up to
+2, review-agent up to 4 total. These per-role ceilings do not add together
+into available capacity. Keep the combined number of open spawned-agent
+threads across all roles within the effective
+`agents.max_concurrent_threads_per_session` limit (or Codex's default when
+unset), after counting already-open threads and excluding the primary thread.
 
 Engage devops-agent when platform architecture, infrastructure, CI/CD, reliability, security, stateful services, cost, or production operations need specialist review. Record a material coverage gap when that role is omitted.
 

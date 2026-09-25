@@ -1,0 +1,2 @@
+# Per-project execution artifacts. Keep reusable templates under docs/specs/templates tracked.
+/.codex/specs/

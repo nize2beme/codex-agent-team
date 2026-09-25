@@ -140,6 +140,10 @@ class RepositoryInvariantTests(unittest.TestCase):
         self.assertIn("max_concurrent_threads_per_session", text)
         self.assertIn("explorer", text)
 
+    def test_runtime_specs_are_ignored(self) -> None:
+        ignore_rules = read(ROOT / ".gitignore").splitlines()
+        self.assertIn("/.codex/specs/", ignore_rules)
+
     def test_removed_provider_and_version_specific_content(self) -> None:
         pieces = [
             "a" + "w" + "s",
@@ -149,6 +153,7 @@ class RepositoryInvariantTests(unittest.TestCase):
             "k" + "ms",
             "e" + "ks",
             "ar" + "n",
+            "i" + "a" + "m",
             "well" + "-architected",
             "solutions" + " architect",
         ]

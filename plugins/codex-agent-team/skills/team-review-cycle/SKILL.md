@@ -104,7 +104,7 @@ Requirements, acceptance criteria, exclusions, interface contracts.
 Schemas, names, generated artifacts, config, outputs, and ownership.
 
 ### Security And Operations
-Trust boundaries, IAM, secrets, network, encryption, logging, rollback.
+Trust boundaries, identity and access controls, secrets, network, encryption, logging, rollback.
 
 ### Verification And Test Adequacy
 Exact commands, CI coverage, behavior proven, verifier gaps.
